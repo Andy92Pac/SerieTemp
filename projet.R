@@ -37,12 +37,15 @@ plot(cnt_ma)
 count_ma <- ts(cnt,frequency = 30)
 plot(count_ma)
 
-#Does the series count_ma appear to have trends or seasonality? oui 
+#Does the series count_ma appear to have trends or seasonality? oui tendance oui saison
 
 #Create a time series deseasonal_cnt by removing the seasonal component 
-count_ma.decomp <- decompose(count_ma)
-plot(count_ma.decomp)
+count_ma.components <- decompose(count_ma)
+plot(count_ma.components)
 
-deseasonal_cnt <- tsdisplay(count_ma)
-
+deseasonal_cnt <- count_ma - count_ma.components$seasonal
+par(mfrow=c(2,1))
+plot.ts(deseasonal_cnt,main = "cnt ts seasonal adjusted")
+plot.ts(count_ma, main = "normal ts")
+par(mfrow=c(1,1))
 
