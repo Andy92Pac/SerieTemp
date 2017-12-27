@@ -12,12 +12,16 @@ day.data <- read.csv("data/day.csv")
 attach(day.data)
 View(day.data)
 
-dt.min <- min(as.Date.character(dteday,format = "%Y-%m-%d"))
-dt.max <- max(as.Date.character(dteday,format = "%Y-%m-%d"))
-
-data.frame(dt.min,dt.max,row.names = '')
-#Cnt en fonction de Date du jour
+#	Plot the cnt vs dteday and examine its patterns and irregularities
 plot(cnt ~ dteday)
+
+#Clean up any outliers or missing values if needed (tsclean() is a convenient method for outlier removal and inputting missing values)
+
+
+#Use moving average to smooth the time serie (try with 7 and 30)
+#jcroi faut faire SMA()
+
+#plot the time series and the two smoothed curves
 
 #Time series
 cnt_ma <- ts(cnt)
@@ -36,6 +40,9 @@ plot(count_ma)
 #Does the series count_ma appear to have trends or seasonality? oui 
 
 #Create a time series deseasonal_cnt by removing the seasonal component 
-deseasonal_cnt <- tsdisplay(cnt_ma)
+count_ma.decomp <- decompose(count_ma)
+plot(count_ma.decomp)
+
+deseasonal_cnt <- tsdisplay(count_ma)
 
 
