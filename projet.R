@@ -63,8 +63,8 @@ adf.test(count_ma) #La p-value est supérieur à 0.5 donc on rejette le test c'e
 count_ma.withoutTrend <- diff(count_ma)
 plot(count_ma.withoutTrend)
 
-acf(count_ma.withoutTrend) #2eme
-pacf(count_ma.withoutTrend) #8 au total
+acf(count_ma.withoutTrend) #Deviens nul à partir de 2
+pacf(count_ma.withoutTrend) #7 barre qui dépasse de la zone on compte pas la 1ere barre
 
 #Modele MA se base sur pacf compter le nb de baton qui dépasse
 #Modele AR se base sur ACF indiquer la position du 1er baton qui dépasse
@@ -81,23 +81,40 @@ count_ma.ARresidual <- count_ma.AR$residuals
 plot(count_ma.ARresidual)
 abline(0,0,col="red")
 
-count_ma.MA <- arima(count_ma.withoutTrend,order = c(0,1,8))
-count_ma.MA$aic #12041.75
+count_ma.MA <- arima(count_ma.withoutTrend,order = c(0,1,7))
+count_ma.MA$aic #12042.1
 
 count_ma.MAresidual <- count_ma.MA$residuals
 plot(count_ma.MAresidual)
 abline(0,0,col="red")
 
-count_ma.ARMA <- arima(count_ma.withoutTrend,order = c(2,1,8))
-count_ma.ARMA$aic #12044.5
+count_ma.ARMA <- arima(count_ma.withoutTrend,order = c(2,1,7))
+count_ma.ARMA$aic #12041.85
 
 auto.count_ma <- auto.arima(count_ma.withoutTrend)
 auto.count_ma #Auto est flingué car il ns propose un modèle moins performant que le notre en cherchant nous
 #même les paramètres
 
-#On choisi le modèle avec le AIC le moins élévé donc MA
+#On choisi le modèle avec le AIC le moins élévé donc ARMA
 
 #Does deseasonal_cnt have a trend?
 plot(deseasonal_cnt)
 deseasonal_cnt.components <- decompose(deseasonal_cnt)
 plot(deseasonal_cnt.components) #POur moi il y a pas de tendance
+
+#Use diff() function on deseasonal_cnt and plot the resulting ts? Is it stationary? (ACF, PACF, adf test)
+deseasonal_cnt.withoutTrend <- diff(deseasonal_cnt)
+plot(deseasonal_cnt.withoutTrend)
+
+acf(deseasonal_cnt.withoutTrend) #2eme position
+pacf(deseasonal_cnt.withoutTrend) #10 qui dépasse
+adf.test(deseasonal_cnt.withoutTrend) #p value inférieur à 5% donc on accepte l'hypothèse H0 que la ts est stationnaire
+
+#What is your conclusion?
+
+#4) Fit an ARIMA model
+#Use auto.arima() function to fit an ARIMA model of deseasonal_cnt (with option 'seasonal=FALSE')
+auto.arima(deseasonal_cnt,seasonal = FALSE)
+
+#Check residuals. If there are visible patterns or bias, plot ACF/PACF. Are any additional order parameters needed?
+
