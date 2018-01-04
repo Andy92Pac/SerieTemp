@@ -4,6 +4,7 @@ library(forecast)
 library(tseries)
 library(smooth)
 library(ggplot2)
+library(zoo)
 
 #Pré-traitement --------------------------------------------------------
 #Chargement des données
@@ -17,38 +18,43 @@ View(day.data)
 plot(cnt ~ dteday)
 
 #Clean up any outliers or missing values if needed (tsclean() is a convenient method for outlier removal and inputting missing values)
-
+ts.cnt <- ts(cnt)
+ts.cnt <- tsclean(ts.cnt)
+plot(ts.cnt)
 
 #Use moving average to smooth the time serie (try with 7 and 30)
 #jcroi faut faire SMA()
+ma.7 <- rollmean(ts.cnt, 7)
+ma.30 <- rollmean(ts.cnt, 30)
 
 #plot the time series and the two smoothed curves
-
-#Time series
-cnt_ma <- ts(cnt)
-plot(cnt_ma)
+lines(ma.7, col = 'red', type = 'l')
+lines(ma.30, col = 'blue', type = 'l')
 
 #-------------------------------------------------------------------------
 
 #1) Now we will be using the smoothed time series with order 7 that we will name hereafter cnt_ma
 #Faut faire un bail de smooth
-
+cnt_ma <- ma.7
 
 #Transform cnt_ma into a time series with frequency 30 named count_ma
-count_ma <- ts(cnt,frequency = 30)
+count_ma <- ts(cnt_ma, frequency = 30)
 plot(count_ma)
 
 #Does the series count_ma appear to have trends or seasonality? oui tendance oui saison
-
-#Create a time series deseasonal_cnt by removing the seasonal component 
 count_ma.components <- decompose(count_ma)
 plot(count_ma.components)
 
+#Create a time series deseasonal_cnt by removing the seasonal component 
 deseasonal_cnt <- count_ma - count_ma.components$seasonal
 par(mfrow=c(2,1))
 plot.ts(deseasonal_cnt,main = "cnt ts seasonal adjusted")
 plot.ts(count_ma, main = "normal ts")
 par(mfrow=c(1,1))
+
+#Plot alternatif
+plot.ts(deseasonal_cnt, col = 'blue')
+lines(count_ma, col = 'red')
 
 #2) Stationarity ------------------------------------------------------------------------------------
 
@@ -60,6 +66,7 @@ plot(count_ma.components)
 #Use adf.test(), ACF, PACF plots to determine order of differencing needed
 adf.test(count_ma) #La p-value est supérieur à 0.5 donc on rejette le test c'est à dire que la ts n'est pas stationnaire
 
+plot(count_ma)
 count_ma.withoutTrend <- diff(count_ma)
 plot(count_ma.withoutTrend)
 
