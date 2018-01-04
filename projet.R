@@ -81,28 +81,28 @@ pacf(count_ma.withoutTrend) #7 barre qui dépasse de la zone on compte pas la 1e
 
 #Choose order of the ARIMA by examining ACF and PACF plots of count_ma
 
-count_ma.AR <- arima(count_ma.withoutTrend,order = c(2,1,0))
-count_ma.AR$aic #12518.18
+count_ma.AR <- arima(count_ma,order = c(2,1,0))
+count_ma.AR$aic #12516.38
 
 count_ma.ARresidual <- count_ma.AR$residuals
 plot(count_ma.ARresidual)
 abline(0,0,col="red")
 
-count_ma.MA <- arima(count_ma.withoutTrend,order = c(0,1,7))
-count_ma.MA$aic #12042.1
+count_ma.MA <- arima(count_ma,order = c(0,1,7))
+count_ma.MA$aic #12051.1
 
 count_ma.MAresidual <- count_ma.MA$residuals
 plot(count_ma.MAresidual)
 abline(0,0,col="red")
 
-count_ma.ARMA <- arima(count_ma.withoutTrend,order = c(2,1,7))
-count_ma.ARMA$aic #12041.85
+count_ma.ARMA <- arima(count_ma,order = c(2,1,7))
+count_ma.ARMA$aic #12054.03
 
-auto.count_ma <- auto.arima(count_ma.withoutTrend)
+auto.count_ma <- auto.arima(count_ma)
 auto.count_ma #Auto est flingué car il ns propose un modèle moins performant que le notre en cherchant nous
 #même les paramètres
 
-#On choisi le modèle avec le AIC le moins élévé donc ARMA
+#On choisi le modèle avec le AIC le moins élévé donc MA
 
 #Does deseasonal_cnt have a trend?
 plot(deseasonal_cnt)
