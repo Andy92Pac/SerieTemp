@@ -16,6 +16,7 @@ library(zoo)
 
 ```{r cars}
 day.data <- read.csv("data/day.csv")
+attach(day.data)
 ```
 
 
@@ -43,6 +44,7 @@ ma.30 <- rollmean(ts.cnt, 30)
 plot the time series and the two smoothed curves
 
 ```{r pressure, echo=FALSE}
+plot(ts.cnt)
 lines(ma.7, col = 'red', type = 'l')
 lines(ma.30, col = 'blue', type = 'l')
 ```
@@ -131,17 +133,82 @@ pacf(count_ma.withoutTrend)
 par(mfrow=c(1,1))
 ```
 
+Le graphique d'autocorrelation montre des autocorrelations aux lags 1,2 et 3.
+Le graphique d'autocorrelation partielle montre des autocorrelations aux lags 1 et 7.
+
 ```{r pressure, echo=FALSE}
-plot.ts(deseasonal_cnt, col = 'blue')
-lines(count_ma, col = 'red')
+count_ma.AR <- arima(count_ma,order = c(2,1,0))
+count_ma.AR$aic
 ```
 
 ```{r pressure, echo=FALSE}
-plot.ts(deseasonal_cnt, col = 'blue')
-lines(count_ma, col = 'red')
+count_ma.ARresidual <- count_ma.AR$residuals
+plot(count_ma.ARresidual)
+abline(0,0,col="red")
 ```
 
 ```{r pressure, echo=FALSE}
-plot.ts(deseasonal_cnt, col = 'blue')
-lines(count_ma, col = 'red')
+count_ma.MA <- arima(count_ma,order = c(0,1,9))
+count_ma.MA$aic #9046.192
 ```
+
+```{r pressure, echo=FALSE}
+count_ma.MAresidual <- count_ma.MA$residuals
+acf(count_ma.MA$residuals)
+plot(count_ma.MAresidual)
+abline(0,0,col="red")
+```
+
+```{r pressure, echo=FALSE}
+plot(deseasonal_cnt)
+deseasonal_cnt.components <- decompose(deseasonal_cnt)
+plot(deseasonal_cnt.components)
+```
+
+```{r pressure, echo=FALSE}
+deseasonal_cnt.withoutTrend <- diff(deseasonal_cnt)
+plot(deseasonal_cnt.withoutTrend)
+```
+
+```{r pressure, echo=FALSE}
+acf(deseasonal_cnt.withoutTrend)
+pacf(deseasonal_cnt.withoutTrend)
+adf.test(deseasonal_cnt.withoutTrend)
+```
+
+Sur le graphe du PACF, on observe une autocorrelation sur le lag 1 et le lag 2
+Sur le graphe de l'ACF, on observe que le lag 10 dépasse.
+La p-value et inférieure à 5%, nous acceptons donc l'hypothèse h0 indiquant que la série temporelle est stationnaire.
+
+```{r}
+auto.mod = auto.arima(deseasonal_cnt,seasonal = FALSE)
+auto.mod
+```
+
+```{r}
+tsdisplay(residuals(auto.mod))
+```
+
+```{r}
+arima.adjusted = arima(deseasonal_cnt, order=c(1,1,7))
+arima.adjusted
+```
+On remarque que l'AIC de ce modèle ajusté est moins élevé que l'AIC obtenu précedemment.
+
+```{r}
+tsdisplay(residuals(arima.adjusted))
+```
+On constate que les résidus sont hétérogénes.
+De plus, l'ACF et le PACF présentent peu d'autocorrélations significatives.
+Donc on en déduit que les résidus n'ont pas capturé beaucoup d'information.
+
+```{r}
+pred.forecast = forecast(arima.adjusted)
+plot(deseasonal_cnt)
+plot(pred.forecast, col = "red")
+```
+
+```{r}
+test = window(ts(deseasonal_cnt), start=700)
+```
+
