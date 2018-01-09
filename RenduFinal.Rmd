@@ -208,19 +208,30 @@ plot(deseasonal_cnt)
 plot(pred.forecast, col = "red")
 ```
 
+Split the data into training and test times series (test starting at observation 700, use function window)
 ```{r}
 test <- window(ts(deseasonal_cnt), start=700)
-
+```
+fit an Arima model on the training part
+```{r}
 arima.model = arima(ts(deseasonal_cnt[-c(700:725)]), order=c(1,1,7))
+```
 
+Forecast the next 25 observation and plot the original ts and the forecasted one. What do you observe?
+```{r}
 pred.forecastModel <- forecast(arima.model,h=25)
 plot(pred.forecastModel, main=" ")
 ```
+On observe que l'on obtient un intervalle de confiance assez restreint ce qui nous laisse penser que le modèle est bon.
 
+Use auto.arima() function to fit an ARIMA model of deseasonal_cnt (with option 'seasonal=TRUE')
 ```{r}
 auto.arima.seas = auto.arima(deseasonal_cnt, seasonal=TRUE)
 auto.arima.seas
+```
 
+Forecast the next 25 observation and plot the original ts and the forecasted one. What do you observe?
+```{r}
 pred.seas <- forecast(auto.arima.seas, h=25)
 plot(pred.seas)
 ```
