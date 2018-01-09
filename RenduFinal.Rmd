@@ -1,28 +1,147 @@
 ---
-title: "RenduFinal"
+title: "Projet Time Series "
 output: html_document
 ---
-
+## Chargement des Library
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(forecast)
+library(tseries)
+library(smooth)
+library(ggplot2)
+library(zoo)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+#Chargement des données
 
 ```{r cars}
-summary(cars)
+day.data <- read.csv("data/day.csv")
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+Plot the cnt vs dteday and examine its patterns and irregularities :
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+plot(cnt ~ dteday)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+lean up any outliers or missing values if needed (tsclean() is a convenient method for outlier removal and inputting missing values).
+
+```{r pressure, echo=FALSE}
+ts.cnt <- ts(cnt)
+ts.cnt <- tsclean(ts.cnt)
+plot(ts.cnt)
+```
+
+Use moving average to smooth the time serie (try with 7 and 30)
+
+```{r pressure, echo=FALSE}
+ma.7 <- rollmean(ts.cnt, 7)
+ma.30 <- rollmean(ts.cnt, 30)
+```
+
+plot the time series and the two smoothed curves
+
+```{r pressure, echo=FALSE}
+lines(ma.7, col = 'red', type = 'l')
+lines(ma.30, col = 'blue', type = 'l')
+```
+
+
+##1) Now we will be using the smoothed time series with order 7 that we will name hereafter cnt_ma
+
+
+```{r pressure, echo=FALSE}
+cnt_ma <- ma.7
+```
+
+Transform cnt_ma into a time series with frequency 30 named count_ma
+
+```{r pressure, echo=FALSE}
+count_ma <- ts(na.omit(cnt_ma), frequency = 30)
+plot(count_ma)
+```
+
+Does the series count_ma appear to have trends or seasonality? 
+
+On observe une tendance ainsi qu'une saisonnalité.
+
+```{r pressure, echo=FALSE}
+count_ma.components <- decompose(count_ma)
+plot(count_ma.components)
+```
+
+Create a time series deseasonal_cnt by removing the seasonal component
+
+```{r pressure, echo=FALSE}
+deseasonal_cnt <- count_ma - count_ma.components$seasonal
+plot.ts(deseasonal_cnt, col = 'blue', main= "original ts in blue seasonal adjusted in red")
+lines(count_ma, col = 'red')
+```
+
+##2) Stationarity
+
+Is the serie count_ma stationary?
+
+La p-value est supérieur à 0.5 donc on rejette le test c'est à dire que la time series n'est pas stationnaire
+
+```{r pressure, echo=FALSE}
+adf.test(count_ma)
+```
+
+AutoCorrelation Function : 
+
+```{r pressure, echo=FALSE}
+acf(count_ma)
+```
+
+Partiel AutoCorrelation Function : 
+
+```{r pressure, echo=FALSE}
+pacf(count_ma)
+```
+
+Nous commençons par une différentiation d'ordre 1 puis nous réevaluront ensuite la possible nécessité d'une seconde différenciation. 
+
+Nous constatons sur le collogramme de l'ACF que le lag 1 est positivement significatif donc nous ne sommes pas dans un cas de sur-différenciation. Par définition une sur-différentiation est lorsque le lag 1 de l'ACF tend vers -1. et que le Pacf à de nombreux h négativement significatif.
+
+```{r pressure, echo=FALSE}
+count_ma.withoutTrend <- diff(count_ma,differences = 1)
+plot(count_ma.withoutTrend)
+```
+
+De plus nous pouvons d'ores et dèja inclure le test de Dickey-Fuller qui consiste à prouver qu'une série temporelle est stationnaire ou pas en fonction de la valeur de la p value. 
+
+h0 : Série temporelle n'est pas stationnaire --> p.value > 5%
+
+On obtient une p.value < 5%. Le test de Dickey-Fuller est concluant on rejette l'hypothèse h0.
+
+```{r pressure, echo=FALSE}
+adf.test(count_ma.withoutTrend,alternative = "stationary")
+```
+
+
+##3) Autocorrelations and choosing model order
+
+
+```{r pressure, echo=FALSE}
+par(mfrow=c(2,1))
+acf(count_ma.withoutTrend) 
+pacf(count_ma.withoutTrend)
+par(mfrow=c(1,1))
+```
+
+```{r pressure, echo=FALSE}
+plot.ts(deseasonal_cnt, col = 'blue')
+lines(count_ma, col = 'red')
+```
+
+```{r pressure, echo=FALSE}
+plot.ts(deseasonal_cnt, col = 'blue')
+lines(count_ma, col = 'red')
+```
+
+```{r pressure, echo=FALSE}
+plot.ts(deseasonal_cnt, col = 'blue')
+lines(count_ma, col = 'red')
+```

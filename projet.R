@@ -40,6 +40,8 @@ cnt_ma <- ma.7
 #Transform cnt_ma into a time series with frequency 30 named count_ma
 count_ma <- ts(cnt_ma, frequency = 30)
 plot(count_ma)
+acf(count_ma)
+pacf(count_ma)
 
 #Does the series count_ma appear to have trends or seasonality? oui tendance oui saison
 count_ma.components <- decompose(count_ma)
@@ -65,9 +67,9 @@ plot(count_ma.components)
 
 #Use adf.test(), ACF, PACF plots to determine order of differencing needed
 adf.test(count_ma) #La p-value est supérieur à 0.5 donc on rejette le test c'est à dire que la ts n'est pas stationnaire
-
+acf()
 plot(count_ma)
-count_ma.withoutTrend <- diff(count_ma)
+count_ma.withoutTrend <- diff(count_ma,differences = 1) #Ordre optimal de différenciation
 plot(count_ma.withoutTrend)
 
 acf(count_ma.withoutTrend) #Deviens nul à partir de 2
@@ -76,6 +78,7 @@ pacf(count_ma.withoutTrend) #7 barre qui dépasse de la zone on compte pas la 1e
 #Modele MA se base sur pacf compter le nb de baton qui dépasse
 #Modele AR se base sur ACF indiquer la position du 1er baton qui dépasse
 
+adf.test(count_ma.withoutTrend,alternative = "stationary")
 
 #3) Autocorrelations and choosing model order--------------------------------------------------------
 
@@ -92,6 +95,7 @@ count_ma.MA <- arima(count_ma,order = c(0,1,9))
 count_ma.MA$aic #9046.192
 
 count_ma.MAresidual <- count_ma.MA$residuals
+acf(count_ma.MA$residuals)
 plot(count_ma.MAresidual)
 abline(0,0,col="red")
 
