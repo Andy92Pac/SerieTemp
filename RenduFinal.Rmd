@@ -209,6 +209,19 @@ plot(pred.forecast, col = "red")
 ```
 
 ```{r}
-test = window(ts(deseasonal_cnt), start=700)
+test <- window(ts(deseasonal_cnt), start=700)
+
+arima.model = arima(ts(deseasonal_cnt[-c(700:725)]), order=c(1,1,7))
+
+pred.forecastModel <- forecast(arima.model,h=25)
+plot(pred.forecastModel, main=" ")
+```
+
+```{r}
+auto.arima.seas = auto.arima(deseasonal_cnt, seasonal=TRUE)
+auto.arima.seas
+
+pred.seas <- forecast(auto.arima.seas, h=25)
+plot(pred.seas)
 ```
 
